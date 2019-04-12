@@ -12,6 +12,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cacheable {
     /**
+     * 如果没有参数的话才需要配置这个
+     * @return
+     */
+    String key() default "";
+    /**
      * 关联的表列表
      * @return
      */

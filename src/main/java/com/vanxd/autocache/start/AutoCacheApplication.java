@@ -15,14 +15,6 @@ public class AutoCacheApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(AutoCacheApplication.class, args);
-		try {
-			LOCK.lock();
-			STOP.await();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} finally {
-			LOCK.unlock();
-		}
 	}
 
 }

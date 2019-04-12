@@ -17,6 +17,7 @@ public class DemoDaoImpl implements IDemoDao {
     @Cacheable(tables = {"demo", "demo_aaa"})
     @Override
     public Integer getById(Integer id, String a, TestDemo demo) {
+        System.out.println("进入方法了");
         return id;
     }
 }
