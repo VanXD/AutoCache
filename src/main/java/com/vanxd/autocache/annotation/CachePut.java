@@ -6,17 +6,32 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 记录操作日志的注解
- * 该注解只能用于，后台帐号登录的接口
- * @author wyd on 2017/7/27.
+ * 刷新缓存, 从底层获得数据放入缓存
+ * 清除缓存需要解决的问题, 缓存是关联表查询的结果, 但是某张表单表更新了数据, 如何去刷新这个缓存
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CachePut {
-    /** 操作日志 */
-    String name();
-    /** 操作内容 */
-    String content();
-    /** APP名称 */
-    String appName() default "";
+public @interface CachePut{
+    /**
+     * 如果没有参数的话才需要配置这个
+     * @return
+     */
+    String key() default "";
+    /**
+     * 关联的表列表
+     * @return
+     */
+    String[] tables() default {};
+
+    /**
+     * 关联的表名
+     * @return
+     */
+    String table() default "";
+
+    /**
+     * key过期秒数, 默认3600秒(1小时)
+     * @return
+     */
+    int expireSecond() default 3600;
 }

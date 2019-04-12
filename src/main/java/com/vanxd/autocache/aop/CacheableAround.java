@@ -28,8 +28,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Aspect
 @Component
-public class CacheAround {
-    private final static Logger logger = LoggerFactory.getLogger(CacheAround.class);
+public class CacheableAround {
+    private final static Logger logger = LoggerFactory.getLogger(CacheableAround.class);
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
@@ -45,9 +45,9 @@ public class CacheAround {
         Class returnType = ((MethodSignature) joinPoint.getSignature()).getReturnType();
         Object proceedResult;
         String cacheResult = getCacheResult(key);
-        if (StringUtils.isEmpty(cacheResult)) {
+        if (cacheable.isCachePut() || StringUtils.isEmpty(cacheResult)) {
             proceedResult = joinPoint.proceed();
-            after(args, method, cacheable, proceedResult);
+            after(key, cacheable, proceedResult);
             return proceedResult;
         } else {
             return JSONObject.parseObject(cacheResult, returnType);
@@ -64,19 +64,15 @@ public class CacheAround {
         return ops.get(key);
     }
 
-    /**
-     * 从底层获得数据后保存进redis
-     * @param args
-     * @param method
-     * @param cacheable
-     * @param result
-     */
-    private void after(Object[] args, Method method, Cacheable cacheable, Object result) {
-        String key = KeyGenerator.generateKey(args, method, cacheable);
-        logger.debug("auto cache key: {}", key);
-        String jsonResult = JSONObject.toJSONString(result);
-        saveKey(cacheable, key, jsonResult);
-        saveKeyList(cacheable, key, jsonResult);
+    private void after(String key, Cacheable cacheable, Object result) {
+        if (cacheable.isCachePut()) {
+
+        } else {
+            logger.debug("auto cache key: {}", key);
+            String jsonResult = JSONObject.toJSONString(result);
+            saveKey(cacheable, key, jsonResult);
+            saveKeyList(cacheable, key, jsonResult);
+        }
     }
 
     /**
@@ -88,10 +84,12 @@ public class CacheAround {
      */
     private void saveKeyList(Cacheable cacheable, String key, String jsonResult) {
         ZSetOperations<String, String> ops = redisTemplate.opsForZSet();
+        int tableCount = cacheable.tables().length;
         Arrays.stream(cacheable.tables())
                 .forEach(table -> {
                     String tableKey = table + "~keys";
-                    ops.add(tableKey, key, 0);
+                    // 分值是表的数量
+                    ops.add(tableKey, key, tableCount);
                 });
     }
 

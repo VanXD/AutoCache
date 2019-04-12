@@ -33,4 +33,6 @@ public @interface Cacheable {
      * @return
      */
     int expireSecond() default 3600;
+
+    boolean isCachePut() default false;
 }

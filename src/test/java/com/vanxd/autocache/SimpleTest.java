@@ -15,7 +15,7 @@ public class SimpleTest extends AutoCacheApplicationTests {
 
     @Test
     public void test() {
-        System.out.println(demoDao.getById(12, "1"));
+        System.out.println(demoDao.getById(12));
     }
 
     @Test
@@ -25,6 +25,11 @@ public class SimpleTest extends AutoCacheApplicationTests {
         testDemo.setB(2);
 //        testDemo.setC(true);
         System.out.println(demoDao.getById(12, "1", testDemo));
+    }
+
+    @Test
+    public void test3() {
+        System.out.println(demoDao.updateById(12));
     }
 
 }
