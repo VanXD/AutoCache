@@ -2,3 +2,6 @@ spring:
   redis:
     host: 192.168.41.5
     password: lansent1qaz
+logging:
+  level:
+    root: debug

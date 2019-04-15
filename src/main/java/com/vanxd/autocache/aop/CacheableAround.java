@@ -2,6 +2,7 @@ package com.vanxd.autocache.aop;
 
 import com.alibaba.fastjson.JSONObject;
 import com.vanxd.autocache.annotation.Cacheable;
+import com.vanxd.autocache.entity.BaseEntity;
 import com.vanxd.autocache.util.KeyGenerator;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -10,13 +11,14 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -34,20 +36,19 @@ public class CacheableAround {
     private RedisTemplate<String, String> redisTemplate;
 
     @Around("@annotation(com.vanxd.autocache.annotation.Cacheable)")
-    public Object validtor(ProceedingJoinPoint joinPoint) throws Throwable {
+    public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
         Cacheable cacheable = method.getAnnotation(Cacheable.class);
         if (StringUtils.isEmpty(cacheable.table()) && cacheable.tables().length == 0) {
             throw new RuntimeException("注解没有设置表名, 至少设置table或者tables");
         }
-        Object[] args = joinPoint.getArgs();
         String key = KeyGenerator.generateKey(joinPoint.getArgs(), method, cacheable);
         Class returnType = ((MethodSignature) joinPoint.getSignature()).getReturnType();
         Object proceedResult;
         String cacheResult = getCacheResult(key);
         if (cacheable.isCachePut() || StringUtils.isEmpty(cacheResult)) {
             proceedResult = joinPoint.proceed();
-            after(key, cacheable, proceedResult);
+            after(key, cacheable, proceedResult, joinPoint.getArgs(), method.getParameters());
             return proceedResult;
         } else {
             return JSONObject.parseObject(cacheResult, returnType);
@@ -64,33 +65,47 @@ public class CacheableAround {
         return ops.get(key);
     }
 
-    private void after(String key, Cacheable cacheable, Object result) {
+    private void after(String key, Cacheable cacheable, Object result, Object[] args, Parameter[] parameters) {
+        logger.debug("auto cache key: {}", key);
+        String jsonResult = JSONObject.toJSONString(result);
         if (cacheable.isCachePut()) {
+            if (!StringUtils.isEmpty(cacheable.table())) {
+                String tableKeyListKey = getTableKeyListKey(cacheable.table());
 
-        } else {
-            logger.debug("auto cache key: {}", key);
-            String jsonResult = JSONObject.toJSONString(result);
-            saveKey(cacheable, key, jsonResult);
-            saveKeyList(cacheable, key, jsonResult);
+            } else {
+                getTableKeyListKey(cacheable.table());
+            }
+            // demo:a:1 这个修改, 如何更新下面那个key
+            // demo:demo_2:a:1
         }
+        String unqIdentity;
+        if (result instanceof BaseEntity) {
+            unqIdentity = ((BaseEntity) result).getId().toString();
+        } else {
+            unqIdentity = cacheable.key();
+        }
+        saveKey(cacheable, key, jsonResult);
+        saveKeyList(cacheable, key, unqIdentity);
     }
 
     /**
      * 把key保存到表keys中
-     *
-     * @param cacheable
+     *  @param cacheable
      * @param key
-     * @param jsonResult
+     * @param unqIdentity
      */
-    private void saveKeyList(Cacheable cacheable, String key, String jsonResult) {
-        ZSetOperations<String, String> ops = redisTemplate.opsForZSet();
-        int tableCount = cacheable.tables().length;
+    private void saveKeyList(Cacheable cacheable, String key, String unqIdentity) {
+        HashOperations<String, Object, Object> ops = redisTemplate.opsForHash();
         Arrays.stream(cacheable.tables())
                 .forEach(table -> {
-                    String tableKey = table + "~keys";
+                    String tableKey = getTableKeyListKey(table);
                     // 分值是表的数量
-                    ops.add(tableKey, key, tableCount);
+                    ops.put(tableKey, key, unqIdentity);
                 });
+    }
+
+    private String getTableKeyListKey(String table) {
+        return table + "~keys";
     }
 
     /**
