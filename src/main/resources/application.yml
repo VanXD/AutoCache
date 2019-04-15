@@ -4,4 +4,4 @@ spring:
     password: lansent1qaz
 logging:
   level:
-    root: debug
+    com.vanxd.autocache: debug

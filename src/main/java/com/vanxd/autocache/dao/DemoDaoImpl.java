@@ -1,6 +1,5 @@
 package com.vanxd.autocache.dao;
 
-import com.vanxd.autocache.annotation.CachePut;
 import com.vanxd.autocache.annotation.Cacheable;
 import com.vanxd.autocache.entity.TestDemo;
 import org.springframework.stereotype.Component;
@@ -9,23 +8,33 @@ import org.springframework.stereotype.Component;
 public class DemoDaoImpl implements IDemoDao {
 
 
-    @Cacheable(tables = {"demo", "demo_aaa"})
+    @Cacheable(table = "demo_1")
     @Override
-    public Integer getById(Integer id) {
-        return id;
+    public TestDemo getById(Long id) {
+        TestDemo testDemo = new TestDemo();
+        testDemo.setId(id);
+        return testDemo;
     }
 
-    @Cacheable(tables = {"demo", "demo_aaa"})
+    @Cacheable(table = "demo_1", isCachePut = true)
     @Override
-    public Integer getById(Integer id, String a, TestDemo demo) {
-        System.out.println("进入方法了");
-        return id;
+    public TestDemo updateById(TestDemo testDemo) {
+        return testDemo;
     }
 
-    @CachePut(table = "demo")
+    @Cacheable(tables = {"demo_1", "demo_2"})
     @Override
-    public Integer updateById(Integer id) {
-        System.out.println("进入方法了");
-        return id + 1;
+    public TestDemo getByUnion(Long id) {
+        TestDemo testDemo = new TestDemo();
+        testDemo.setId(id);
+        testDemo.setA("UNION");
+        testDemo.setB(1);
+        return testDemo;
+    }
+
+    @Cacheable(tables = {"demo_1", "demo_2"}, isCachePut = true)
+    @Override
+    public TestDemo updateByUnion(TestDemo testDemo) {
+        return testDemo;
     }
 }

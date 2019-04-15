@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
 public @interface Cacheable {
     /**
      * 如果没有参数的话才需要配置这个
+     * 使用SpEL进行解析
      * @return
      */
     String key() default "";

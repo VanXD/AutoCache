@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class KeyGenerator {
     private final static Logger logger = LoggerFactory.getLogger(KeyGenerator.class);
-    private final static String COLON = ":";
+    public final static String COLON = ":";
     /**
      * 构造redis key
      * @param args
@@ -48,6 +48,33 @@ public class KeyGenerator {
                 }
             }
         }
+        String result = key.toString();
+        logger.debug("auto cache key: {}", result);
+        return result;
+    }
+
+    public static String generateLikeKey(Object[] args, Method method, Cacheable cacheable) {
+        StringBuilder key = new StringBuilder("*");
+        // 无参数缓存
+        if (args.length == 0) {
+            if (StringUtils.isEmpty(cacheable.key())) {
+                throw new RuntimeException("无参数缓存请配置key");
+            }
+            key.append(COLON).append(cacheable.key());
+        } else {
+            // 有参数缓存
+            Parameter[] parameters = method.getParameters();
+            JSONArray argArray = JSONArray.parseArray(JSONObject.toJSONString(args));
+            if (parameters.length != 0) {
+                for (int i = 0; i < parameters.length; i++) {
+                    Parameter parameter = parameters[i];
+                    String name = parameter.getName();
+                    Object o = argArray.get(i);
+                    key.append(COLON).append(name).append(COLON).append(o.toString());
+                }
+            }
+        }
+        key.append("*");
         String result = key.toString();
         logger.debug("auto cache key: {}", result);
         return result;

@@ -11,15 +11,16 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -46,13 +47,13 @@ public class CacheableAround {
         Class returnType = ((MethodSignature) joinPoint.getSignature()).getReturnType();
         Object proceedResult;
         String cacheResult = getCacheResult(key);
-        if (cacheable.isCachePut() || StringUtils.isEmpty(cacheResult)) {
+//        if (cacheable.isCachePut() || StringUtils.isEmpty(cacheResult)) {
             proceedResult = joinPoint.proceed();
-            after(key, cacheable, proceedResult, joinPoint.getArgs(), method.getParameters());
+            after(key, cacheable, proceedResult, joinPoint.getArgs(), method.getParameters(), method);
             return proceedResult;
-        } else {
-            return JSONObject.parseObject(cacheResult, returnType);
-        }
+//        } else {
+//            return JSONObject.parseObject(cacheResult, returnType);
+//        }
     }
 
     /**
@@ -65,27 +66,69 @@ public class CacheableAround {
         return ops.get(key);
     }
 
-    private void after(String key, Cacheable cacheable, Object result, Object[] args, Parameter[] parameters) {
+    private void after(String key, Cacheable cacheable, Object result, Object[] args, Parameter[] parameters, Method method) {
         logger.debug("auto cache key: {}", key);
-        String jsonResult = JSONObject.toJSONString(result);
+        String dataResult = JSONObject.toJSONString(result);
         if (cacheable.isCachePut()) {
             if (!StringUtils.isEmpty(cacheable.table())) {
                 String tableKeyListKey = getTableKeyListKey(cacheable.table());
-
+                String likeKey = KeyGenerator.generateLikeKey(args, method, cacheable);
+                refreshCache(tableKeyListKey, likeKey, dataResult, result, cacheable);
             } else {
-                getTableKeyListKey(cacheable.table());
+                Arrays.stream(cacheable.tables())
+                      .forEach(talbe -> {
+                          String tableKeyListKey = getTableKeyListKey(talbe);
+                          String likeKey = KeyGenerator.generateLikeKey(args, method, cacheable);
+                          refreshCache(tableKeyListKey, likeKey, dataResult, result, cacheable);
+                      });
             }
-            // demo:a:1 这个修改, 如何更新下面那个key
-            // demo:demo_2:a:1
-        }
-        String unqIdentity;
-        if (result instanceof BaseEntity) {
-            unqIdentity = ((BaseEntity) result).getId().toString();
         } else {
-            unqIdentity = cacheable.key();
+            String unqIdentity;
+            if (result instanceof BaseEntity) {
+                unqIdentity = ((BaseEntity) result).getId().toString();
+            } else {
+                unqIdentity = cacheable.key();
+            }
+            // 保存数据到缓存
+            saveKey(cacheable.expireSecond(), key, dataResult);
+            // 保存数据key到表key list
+            saveKeyList(cacheable, key, unqIdentity);
+            // 保存数据key到主键key list
+            if (result instanceof BaseEntity) {
+                savePrimaryKeyList((BaseEntity) result, key);
+            }
         }
-        saveKey(cacheable, key, jsonResult);
-        saveKeyList(cacheable, key, unqIdentity);
+    }
+
+    private void savePrimaryKeyList(BaseEntity result, String cacheKey) {
+        SetOperations<String, String> ops = redisTemplate.opsForSet();
+        String key = "demotest:" + "id:" + result.getId() + "~keys";
+        ops.add(key, cacheKey);
+        redisTemplate.expire(key, 3600, TimeUnit.SECONDS);
+    }
+
+    private void refreshCache(String tableKeyListKey, String likeKey, String dataResultJson, Object dataResult, Cacheable cacheable) {
+        // 清除主键缓存
+        if (dataResult instanceof BaseEntity) {
+            BaseEntity baseEntity = (BaseEntity) dataResult;
+            String key = "demotest:" + "id:" + baseEntity.getId() + "~keys";
+            SetOperations<String, String> setOps = redisTemplate.opsForSet();
+            Set<String> members = setOps.members(key);
+            if (!CollectionUtils.isEmpty(members)) {
+                members.stream().forEach(dataKey -> {
+                    saveKey(cacheable.expireSecond(), dataKey, dataResultJson);
+                });
+            }
+        }
+
+        HashOperations<String, Object, Object> ops = redisTemplate.opsForHash();
+        Cursor<Map.Entry<Object, Object>> scan = ops.scan(tableKeyListKey, ScanOptions.scanOptions().match(likeKey).count(1000).build());
+        scan.forEachRemaining(item -> {
+            String key = (String) item.getKey();
+            // 刷新缓存
+            saveKey(cacheable.expireSecond(), key, dataResultJson);
+        });
+
     }
 
     /**
@@ -101,6 +144,7 @@ public class CacheableAround {
                     String tableKey = getTableKeyListKey(table);
                     // 分值是表的数量
                     ops.put(tableKey, key, unqIdentity);
+                    redisTemplate.expire(tableKey, 3600, TimeUnit.SECONDS);
                 });
     }
 
@@ -111,12 +155,13 @@ public class CacheableAround {
     /**
      * 保存单独的key
      *
-     * @param cacheable
+     * @param expireSecond
      * @param key
      * @param jsonResult
      */
-    private void saveKey(Cacheable cacheable, String key, String jsonResult) {
+    private void saveKey(Integer expireSecond, String key, String jsonResult) {
+        logger.debug("保存: key: {}, 结果: {}", key, jsonResult);
         ValueOperations<String, String> ops = redisTemplate.opsForValue();
-        ops.set(key, jsonResult, cacheable.expireSecond(), TimeUnit.SECONDS);
+        ops.set(key, jsonResult, expireSecond, TimeUnit.SECONDS);
     }
 }
