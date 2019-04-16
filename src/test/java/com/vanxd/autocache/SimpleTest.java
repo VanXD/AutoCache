@@ -1,7 +1,7 @@
 package com.vanxd.autocache;
 
-import com.vanxd.autocache.dao.IDemoDao;
-import com.vanxd.autocache.entity.TestDemo;
+import com.vanxd.autocache.core.dao.IDemoDao;
+import com.vanxd.autocache.core.entity.TestDemo;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
