@@ -1,7 +1,7 @@
-package com.vanxd.autocache.core.dao;
+package com.vanxd.autocache.dao;
 
 import com.vanxd.autocache.core.annotation.Cacheable;
-import com.vanxd.autocache.core.entity.TestDemo;
+import com.vanxd.autocache.entity.TestDemo;
 import org.springframework.stereotype.Component;
 
 @Component

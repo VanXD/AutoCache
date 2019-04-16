@@ -1,4 +1,4 @@
-package com.vanxd.autocache.core.entity;
+package com.vanxd.autocache.entity;
 
 public abstract class BaseEntity {
     private Long id;

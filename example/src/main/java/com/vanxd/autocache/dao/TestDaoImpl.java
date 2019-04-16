@@ -1,7 +1,7 @@
-package com.vanxd.autocache.core.dao;
+package com.vanxd.autocache.dao;
 
 import com.vanxd.autocache.core.annotation.Cacheable;
-import com.vanxd.autocache.core.entity.TestA;
+import com.vanxd.autocache.entity.TestA;
 
 public class TestDaoImpl implements ITestADao {
     @Cacheable(table = "testa")

@@ -8,15 +8,20 @@
 		<version>2.1.4.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.vanxd</groupId>
-	<artifactId>auto-cache</artifactId>
+	<groupId>com.vanxd.autocache</groupId>
+	<artifactId>auto-cache-parent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>auto-cache</name>
+	<name>auto-cache-parent</name>
+	<packaging>pom</packaging>
 	<description>Demo project for Spring Boot</description>
 
 	<properties>
 		<java.version>1.8</java.version>
 	</properties>
+	<modules>
+		<module>core</module>
+		<module>example</module>
+	</modules>
 
 	<dependencies>
 		<dependency>

@@ -1,6 +1,6 @@
-package com.vanxd.autocache.core.dao;
+package com.vanxd.autocache.dao;
 
-import com.vanxd.autocache.core.entity.TestDemo;
+import com.vanxd.autocache.entity.TestDemo;
 
 public interface IDemoDao {
     TestDemo getById(Long id);

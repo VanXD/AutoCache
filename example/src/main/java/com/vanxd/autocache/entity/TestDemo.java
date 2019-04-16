@@ -1,4 +1,4 @@
-package com.vanxd.autocache.core.entity;
+package com.vanxd.autocache.entity;
 
 public class TestDemo extends BaseEntity{
     private String a;
