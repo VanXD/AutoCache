@@ -1,4 +1,4 @@
-package com.vanxd.autocache.start;
+package com.vanxd.autocache.example.start;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -2,7 +2,7 @@ package com.vanxd.autocache.core.cache;
 
 import com.alibaba.fastjson.JSONObject;
 import com.vanxd.autocache.core.annotation.Cacheable;
-import com.vanxd.autocache.entity.BaseEntity;
+import com.vanxd.autocache.example.entity.BaseEntity;
 import com.vanxd.autocache.core.util.KeyGenerator;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;

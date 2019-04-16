@@ -1,6 +1,6 @@
 package com.vanxd.autocache.example;
 
-import com.vanxd.autocache.start.ExampleApplication;
+import com.vanxd.autocache.example.start.ExampleApplication;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
