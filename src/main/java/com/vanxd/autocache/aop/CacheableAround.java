@@ -48,6 +48,7 @@ public class CacheableAround {
             cacheAfter.after();
             return proceedResult;
         } else {
+            logger.debug("读取缓存: {} -> {}", key, cacheResult);
             return JSONObject.parseObject(cacheResult, returnType);
         }
     }

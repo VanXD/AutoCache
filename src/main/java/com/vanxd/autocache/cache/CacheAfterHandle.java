@@ -61,7 +61,6 @@ public class CacheAfterHandle {
     }
 
     public void after() {
-        logger.debug("auto cache key: {}", key);
         String dataResult = JSONObject.toJSONString(result);
         if (cacheable.isCachePut()) {
             if (!StringUtils.isEmpty(cacheable.table())) {
@@ -111,6 +110,7 @@ public class CacheAfterHandle {
         SetOperations<String, Object> ops = redisTemplate.opsForSet();
         String key = "demotest:" + "id:" + result.getId() + "~keys";
         ops.add(key, cacheKey);
+        logger.debug("保存主键key: {}, {}", key, cacheKey);
         redisTemplate.expire(key, 3600, TimeUnit.SECONDS);
     }
 
@@ -150,6 +150,7 @@ public class CacheAfterHandle {
                 .forEach(table -> {
                     String tableKey = KeyGenerator.getTableKeyListKey(table);
                     // 分值是表的数量
+                    logger.debug("保存key列表: {}, {}, {}", table, key, unqIdentity);
                     ops.put(tableKey, key, unqIdentity);
                     redisTemplate.expire(tableKey, 3600, TimeUnit.SECONDS);
                 });
