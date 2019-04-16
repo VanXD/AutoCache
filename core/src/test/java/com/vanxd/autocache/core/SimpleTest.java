@@ -1,4 +1,4 @@
-package com.vanxd.autocache;
+package com.vanxd.autocache.core;
 
 import com.vanxd.autocache.core.dao.IDemoDao;
 import com.vanxd.autocache.core.entity.TestDemo;
@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * 测试
  *
  */
-public class SimpleTest extends AutoCacheApplicationTests {
+public class SimpleTest extends CoreApplicationTests {
     @Autowired
     private IDemoDao demoDao;
 
