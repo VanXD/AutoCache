@@ -79,4 +79,8 @@ public class KeyGenerator {
         logger.debug("auto cache key: {}", result);
         return result;
     }
+
+    public static String getTableKeyListKey(String table) {
+        return table + "~keys";
+    }
 }
