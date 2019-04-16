@@ -2,7 +2,7 @@ package com.vanxd.autocache.core.cache;
 
 import com.alibaba.fastjson.JSONObject;
 import com.vanxd.autocache.core.annotation.Cacheable;
-import com.vanxd.autocache.example.entity.BaseEntity;
+import com.vanxd.autocache.core.entity.BaseEntity;
 import com.vanxd.autocache.core.util.KeyGenerator;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -13,7 +13,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
@@ -32,12 +31,8 @@ public class CacheAfterHandle {
     private Object result;
     /** AOP参数 */
     private Object[] args;
-    /** AOP参数名 */
-    private Parameter[] parameters;
     /** AOP方法 */
     private Method method;
-    /** AOP连接点 */
-    private ProceedingJoinPoint joinPoint;
     /** redis template */
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -53,11 +48,9 @@ public class CacheAfterHandle {
         this.key = key;
         this.cacheable = cacheable;
         this.result = result;
-        this.joinPoint = joinPoint;
         this.redisTemplate = redisTemplate;
         this.args = joinPoint.getArgs();
         this.method = ((MethodSignature) joinPoint.getSignature()).getMethod();
-        this.parameters = this.method.getParameters();
     }
 
     public void after() {

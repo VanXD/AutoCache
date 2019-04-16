@@ -1,6 +1,8 @@
 package com.vanxd.autocache.example.entity;
 
-public class TestDemo extends BaseEntity{
+import com.vanxd.autocache.core.entity.BaseEntity;
+
+public class TestDemo extends BaseEntity {
     private String a;
     private Integer b;
     private Boolean c;

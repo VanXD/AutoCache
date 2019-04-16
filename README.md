@@ -1,6 +1,9 @@
 # AutoCache
 解决缓存问题
 
+#java编译参数
+javac -parameters
+
 #问题
 1.  单表缓存更新
     1.  相同字段缓存更新: ID更新数据库, 更新ID的缓存
