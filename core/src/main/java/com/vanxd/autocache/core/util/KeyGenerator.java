@@ -3,6 +3,7 @@ package com.vanxd.autocache.core.util;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.vanxd.autocache.core.annotation.Cacheable;
+import com.vanxd.autocache.core.spel.MethodSpELParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -49,7 +50,7 @@ public class KeyGenerator {
             }
         }
         String result = key.toString();
-        logger.debug("auto cache key: {}", result);
+        logger.debug("生成key: {}", result);
         return result;
     }
 
@@ -61,6 +62,11 @@ public class KeyGenerator {
                 throw new RuntimeException("无参数缓存请配置key");
             }
             key.append(COLON).append(cacheable.key());
+        } else if (!StringUtils.isEmpty(cacheable.key())){
+            MethodSpELParser methodSpELParser = new MethodSpELParser(cacheable.key(), method, args);
+            Object value = methodSpELParser.getValue();
+            logger.debug("spel value: {}", value);
+            return value.toString();
         } else {
             // 有参数缓存
             Parameter[] parameters = method.getParameters();
@@ -76,7 +82,7 @@ public class KeyGenerator {
         }
         key.append("*");
         String result = key.toString();
-        logger.debug("auto cache key: {}", result);
+        logger.debug("生成like key: {}", result);
         return result;
     }
 

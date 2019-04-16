@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * 测试
  *
  */
-public class SimpleTest extends ExampleApplicationTests {
+public class DemoTest extends ExampleApplicationTests {
     @Autowired
     private IDemoDao demoDao;
 

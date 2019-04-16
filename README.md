@@ -11,3 +11,9 @@ javac -parameters
 2.  关联表缓存更新: 两张表关联查询获得的结果
     1.  某一张表数据更新后缓存刷新
 3.  接口无参缓存
+
+
+#使用
+
+#针对数据库对象
+继承com.vanxd.autocache.core.entity.BaseEntity

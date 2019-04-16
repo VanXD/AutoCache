@@ -6,6 +6,24 @@ public class TestDemo extends BaseEntity {
     private String a;
     private Integer b;
     private Boolean c;
+    private Long testaId;
+    private String testaName;
+
+    public Long getTestaId() {
+        return testaId;
+    }
+
+    public void setTestaId(Long testaId) {
+        this.testaId = testaId;
+    }
+
+    public String getTestaName() {
+        return testaName;
+    }
+
+    public void setTestaName(String testaName) {
+        this.testaName = testaName;
+    }
 
     public String getA() {
         return a;
