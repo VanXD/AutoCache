@@ -1,12 +1,12 @@
 package com.vanxd.autocache.core.spel;
 
+import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 
 /**
  *
@@ -18,16 +18,19 @@ public class MethodSpELParser {
     private Expression expression;
     private ExpressionParser parser = new SpelExpressionParser();
     private StandardEvaluationContext context = new StandardEvaluationContext();
+    private final static DefaultParameterNameDiscoverer nameDiscoverer = new DefaultParameterNameDiscoverer();
 
 
     public MethodSpELParser(String expressionStr, Method method, Object[] args) {
         this.expressionStr = expressionStr;
         this.expression = parser.parseExpression(expressionStr);
-        Parameter[] parameters = method.getParameters();
-        for (int i = 0;i < parameters.length; i++) {
-            String name = parameters[i].getName();
-            Object arg = args[i];
-            context.setVariable(name, arg);
+        String[] parameterNames = nameDiscoverer.getParameterNames(method);
+        if (null != parameterNames && parameterNames.length != 0) {
+            for (int i = 0;i < parameterNames.length; i++) {
+                String name = parameterNames[i];
+                Object arg = args[i];
+                context.setVariable(name, arg);
+            }
         }
     }
 
