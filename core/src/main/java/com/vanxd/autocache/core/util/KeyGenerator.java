@@ -6,16 +6,17 @@ import com.vanxd.autocache.core.annotation.Cacheable;
 import com.vanxd.autocache.core.spel.MethodSpELParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class KeyGenerator {
     private final static Logger logger = LoggerFactory.getLogger(KeyGenerator.class);
     public final static String COLON = ":";
+    private final static DefaultParameterNameDiscoverer nameDiscoverer = new DefaultParameterNameDiscoverer();
     /**
      * 构造redis key
      * @param args
@@ -38,12 +39,11 @@ public class KeyGenerator {
             key.append(COLON).append(cacheable.key());
         } else {
             // 有参数缓存
-            Parameter[] parameters = method.getParameters();
+            String[] parameterNames = nameDiscoverer.getParameterNames(method);
             JSONArray argArray = JSONArray.parseArray(JSONObject.toJSONString(args));
-            if (parameters.length != 0) {
-                for (int i = 0; i < parameters.length; i++) {
-                    Parameter parameter = parameters[i];
-                    String name = parameter.getName();
+            if (null != parameterNames && parameterNames.length != 0) {
+                for (int i = 0; i < parameterNames.length; i++) {
+                    String name = parameterNames[i];
                     Object o = argArray.get(i);
                     key.append(COLON).append(name).append(COLON).append(o.toString());
                 }
@@ -69,12 +69,11 @@ public class KeyGenerator {
             return value.toString();
         } else {
             // 有参数缓存
-            Parameter[] parameters = method.getParameters();
+            String[] parameterNames = nameDiscoverer.getParameterNames(method);
             JSONArray argArray = JSONArray.parseArray(JSONObject.toJSONString(args));
-            if (parameters.length != 0) {
-                for (int i = 0; i < parameters.length; i++) {
-                    Parameter parameter = parameters[i];
-                    String name = parameter.getName();
+            if (null != parameterNames && parameterNames.length != 0) {
+                for (int i = 0; i < parameterNames.length; i++) {
+                    String name = parameterNames[i];
                     Object o = argArray.get(i);
                     key.append(COLON).append(name).append(COLON).append(o.toString());
                 }
